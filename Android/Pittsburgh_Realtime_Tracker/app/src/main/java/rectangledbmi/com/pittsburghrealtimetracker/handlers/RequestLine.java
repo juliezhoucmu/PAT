@@ -80,6 +80,8 @@ public class RequestLine extends AsyncTask<Void, Void, RequestLineContainer> {
                        TransitStop stopMap,
                        Context context
     ) {
+
+        Log.i("******","RequestLine(mMap, routeLines, route, busStops, color, zoom, Float.parseFloat(getString(R.string.zoom_level)), transitStop, this).execute()");
         this.mMap = mMap;
         this.patterns = patterns;
         this.selectedRoute = selectedRoute;

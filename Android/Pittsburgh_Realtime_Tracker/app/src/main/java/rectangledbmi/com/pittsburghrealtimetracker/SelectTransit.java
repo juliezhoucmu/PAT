@@ -1,7 +1,6 @@
 package rectangledbmi.com.pittsburghrealtimetracker;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.location.Location;
@@ -9,12 +8,9 @@ import android.net.http.HttpResponseCache;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -51,7 +47,6 @@ import rectangledbmi.com.pittsburghrealtimetracker.world.TransitStop;
  * This is the main activity of the Realtime Tracker...
  */
 public class SelectTransit extends AppCompatActivity implements
-        NavigationDrawerFragment.NavigationDrawerCallbacks,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
@@ -88,10 +83,6 @@ public class SelectTransit extends AppCompatActivity implements
      */
     private final static LatLng PITTSBURGH = new LatLng(40.441, -79.981);
 
-    /**
-     * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
-     */
-    private NavigationDrawerFragment mNavigationDrawerFragment;
 
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
@@ -174,28 +165,23 @@ public class SelectTransit extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-            setContentView(R.layout.activity_select_transit);
-            checkSDCardData();
-            mNavigationDrawerFragment = (NavigationDrawerFragment)
-                    getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
-            mTitle = getTitle();
+        setContentView(R.layout.activity_select_transit);
+        checkSDCardData();
+        mTitle = getTitle();
 
-            // Set up the drawer.
-            mNavigationDrawerFragment.setUp(
-                    R.id.navigation_drawer,
-                    (DrawerLayout) findViewById(R.id.drawer_layout));
 
-            setGoogleApiClient();
-            createBusList();
-            //sets up the map
-            inSavedState = false;
-            enableHttpResponseCache();
-            restoreInstanceState(savedInstanceState);
-            isBusTaskRunning = false;
-            //        zoom = 15.0f;
+        setGoogleApiClient();
+        createBusList();
+        //sets up the map
+        inSavedState = false;
+        enableHttpResponseCache();
+        restoreInstanceState(savedInstanceState);
+        isBusTaskRunning = false;
+        //        zoom = 15.0f;
 //        } else {
 //
 //        }
+        selectFromList(29);
     }
 
 //    /**
@@ -213,6 +199,7 @@ public class SelectTransit extends AppCompatActivity implements
     /**
      * Checks if the stored polylines directory is present and clears if we hit a friday or if the
      * saved day of the week is higher than the current day of the week.
+     *
      * @since 32
      */
     private void checkSDCardData() {
@@ -220,24 +207,24 @@ public class SelectTransit extends AppCompatActivity implements
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         Long lastUpdated = sp.getLong(LINES_LAST_UPDATED, -1);
         Log.d("data_storage", data.getName());
-        if(!data.exists())
+        if (!data.exists())
             data.mkdirs();
         File lineInfo = new File(data, "/lineinfo");
-        if(!data.exists())
+        if (!data.exists())
             data.mkdirs();
         Log.d("updated time", Long.toString(lastUpdated));
-        if(lastUpdated != -1 && ((System.currentTimeMillis() - lastUpdated) / 1000 / 60 / 60) > 24) {
+        if (lastUpdated != -1 && ((System.currentTimeMillis() - lastUpdated) / 1000 / 60 / 60) > 24) {
 //            Log.d("update time....", Long.toString((System.currentTimeMillis() - lastUpdated) / 1000 / 60 / 60));
-            if(lineInfo.exists()) {
+            if (lineInfo.exists()) {
                 Calendar c = Calendar.getInstance();
                 int day = c.get(Calendar.DAY_OF_WEEK);
                 Calendar o = Calendar.getInstance();
                 o.setTimeInMillis(lastUpdated);
                 int oldDay = o.get(Calendar.DAY_OF_WEEK);
-                if(day == Calendar.FRIDAY || oldDay >= day) {
+                if (day == Calendar.FRIDAY || oldDay >= day) {
                     File[] files = lineInfo.listFiles();
                     sp.edit().putLong(LINES_LAST_UPDATED, System.currentTimeMillis()).apply();
-                    if(files != null) {
+                    if (files != null) {
                         for (File file : files) {
                             file.delete();
                         }
@@ -246,8 +233,8 @@ public class SelectTransit extends AppCompatActivity implements
             }
         }
 
-        if(lineInfo.listFiles() == null || lineInfo.listFiles().length == 0) {
-           sp.edit().putLong(LINES_LAST_UPDATED, System.currentTimeMillis()).apply();
+        if (lineInfo.listFiles() == null || lineInfo.listFiles().length == 0) {
+            sp.edit().putLong(LINES_LAST_UPDATED, System.currentTimeMillis()).apply();
         }
     }
 
@@ -266,7 +253,7 @@ public class SelectTransit extends AppCompatActivity implements
         try {
             long httpCacheSize = 10485760; // 10 MiB
             File fetch = getExternalCacheDir();
-            if(fetch == null) {
+            if (fetch == null) {
                 fetch = getCacheDir();
             }
             File httpCacheDir = new File(fetch, "http");
@@ -286,7 +273,7 @@ public class SelectTransit extends AppCompatActivity implements
     protected void restoreInstanceState(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             Log.d("savedInstance_restore", "instance saved");
-            Log.d("savedInstance_s", "lat="+savedInstanceState.getDouble(LAST_LATITUDE));
+            Log.d("savedInstance_s", "lat=" + savedInstanceState.getDouble(LAST_LATITUDE));
             inSavedState = true;
             latitude = savedInstanceState.getDouble(LAST_LATITUDE);
             longitude = savedInstanceState.getDouble(LAST_LONGITUDE);
@@ -299,8 +286,8 @@ public class SelectTransit extends AppCompatActivity implements
             defaultCameraLocation();
         }
         Log.d("savedInstance_restore", "saved? " + inSavedState);
-        Log.d("savedInstance_restore", "lat="+latitude);
-        Log.d("savedInstance_restore", "long="+longitude);
+        Log.d("savedInstance_restore", "lat=" + latitude);
+        Log.d("savedInstance_restore", "long=" + longitude);
         if (transitStop == null) {
             transitStop = new TransitStop();
         }
@@ -334,11 +321,11 @@ public class SelectTransit extends AppCompatActivity implements
 //        savedInstanceState.putStringArrayList(BUS_SELECT_STATE, list);
         if (mMap != null) {
             savedInstanceState.putDouble(LAST_LATITUDE, latitude);
-            savedInstanceState.putDouble(LAST_LONGITUDE,longitude);
+            savedInstanceState.putDouble(LAST_LONGITUDE, longitude);
             savedInstanceState.putFloat(LAST_ZOOM, zoom);
             Log.d("savedInstance_osi", "saved? " + inSavedState);
-            Log.d("savedInstance_osi", "lat="+latitude);
-            Log.d("savedInstance_osi", "long="+longitude);
+            Log.d("savedInstance_osi", "lat=" + latitude);
+            Log.d("savedInstance_osi", "long=" + longitude);
             Log.d("savedInstance_osi", "zoom=" + zoom);
         }
 
@@ -377,7 +364,7 @@ public class SelectTransit extends AppCompatActivity implements
                 mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
                     @Override
                     public void onCameraChange(CameraPosition cameraPosition) {
-                        if(!inSavedState)
+                        if (!inSavedState)
                             inSavedState = true;
                         latitude = cameraPosition.target.latitude;
                         longitude = cameraPosition.target.longitude;
@@ -442,8 +429,11 @@ public class SelectTransit extends AppCompatActivity implements
 //        }
         if (mMap != null) {
             setUpMap();
-        } else
+        } else {
             setUpMapIfNeeded();
+        }
+        selectPolyline(29);
+
     }
 
     /**
@@ -499,47 +489,14 @@ public class SelectTransit extends AppCompatActivity implements
 //
 //    }
 
-    /**
-     * Gets called from NavigationDrawerFragment's onclick? Supposed to...
-     *
-     * @param position the list selection selected starting from 0
-     */
-    @Override
-    public void onNavigationDrawerItemSelected(int position) {
-        // update the main content by replacing fragments
-        onSectionAttached(position);
-    }
-
-    /**
-     * Gets called when one of the buses is pressed. Take note routes will always have more than one
-     * polyline.
-     *
-     * @param number which bus in the list is pressed
-     */
-    public void onSectionAttached(int number) {
-        if(mNavigationDrawerFragment.getAmountSelected() >= 0 &&
-                mNavigationDrawerFragment.getAmountSelected() <= getResources().getInteger(R.integer.max_checked)) {
-            if(mNavigationDrawerFragment.isPositionSelected(number)) {
-                selectFromList(number);
-            } else {
-                deselectFromList(number);
-            }
-            Log.d("buses_attached", buses.toString());
-        }
-//        setPolyline(number);
-//        setList(getResources().getStringArray(R.array.buses)[number]);
-    }
-
 
     public void selectFromList(int number) {
-        if(buses.add(getResources().getStringArray(R.array.buses)[number])) {
-            Log.d("added_bus", getResources().getStringArray(R.array.buses)[number]);
-            selectPolyline(number);
-        }
+        buses.add("54");
+        selectPolyline(29);
     }
 
     public void deselectFromList(int number) {
-        if(buses.remove(getResources().getStringArray(R.array.buses)[number])) {
+        if (buses.remove(getResources().getStringArray(R.array.buses)[number])) {
             Log.d("removed_bus", getResources().getStringArray(R.array.buses)[number]);
             deselectPolyline(number);
         }
@@ -547,18 +504,19 @@ public class SelectTransit extends AppCompatActivity implements
 
     private synchronized void selectPolyline(int number) {
         String route = getResources().getStringArray(R.array.buses)[number];
+        Log.i("******",route);
         int color = Color.parseColor(getResources().getStringArray(R.array.buscolors)[number]);
         List<Polyline> polylines = routeLines.get(route);
 
         if (polylines == null || polylines.isEmpty()) {
             Log.i("******", "can't get this polyline");
             new RequestLine(mMap, routeLines, route, busStops, color, zoom, Float.parseFloat(getString(R.string.zoom_level)), transitStop, this).execute();
-        } else if(!polylines.get(0).isVisible()) {
+        }
+        else if (!polylines.get(0).isVisible()) {
             Log.i("******", "Polyline is not visible");
             setVisiblePolylines(polylines, true);
             transitStop.updateAddRoutes(route, zoom, Float.parseFloat(getString(R.string.zoom_level)));
-        }
-        else {
+        } else {
             Log.i("******", "Polyline is already visible");
         }
     }
@@ -566,8 +524,8 @@ public class SelectTransit extends AppCompatActivity implements
     private synchronized void deselectPolyline(int number) {
         String route = getResources().getStringArray(R.array.buses)[number];
         List<Polyline> polylines = routeLines.get(route);
-        if(polylines != null) {
-            if(!polylines.isEmpty() && polylines.get(0).isVisible()) {
+        if (polylines != null) {
+            if (!polylines.isEmpty() && polylines.get(0).isVisible()) {
                 setVisiblePolylines(polylines, false);
                 transitStop.removeRoute(route);
             } else {
@@ -623,37 +581,6 @@ public class SelectTransit extends AppCompatActivity implements
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
-    //dunno...
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        if (!mNavigationDrawerFragment.isDrawerOpen()) {
-            // Only show items in the action bar relevant to this screen
-            // if the drawer is not showing. Otherwise, let the drawer
-            // decide what to show in the action bar.
-            getMenuInflater().inflate(R.menu.select_transit, menu);
-            restoreActionBar();
-            return true;
-        }
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    //We probably don't need this? Maybe we do
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_select_buses) {
-            mNavigationDrawerFragment.openDrawer();
-        }
-        if (id == R.id.action_about) {
-            Intent intent = new Intent(this, AboutActivity.class);
-            startActivity(intent);
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
 
     /**
      * Polls self on the map and then centers the map on Pittsburgh or you if you're in Pittsburgh..
@@ -676,8 +603,8 @@ public class SelectTransit extends AppCompatActivity implements
             zoom = 11.82f;
         }*/
         Log.d("savedInstance", "saved? " + inSavedState);
-        Log.d("savedInstance", "lat="+latitude);
-        Log.d("savedInstance", "long="+longitude);
+        Log.d("savedInstance", "lat=" + latitude);
+        Log.d("savedInstance", "long=" + longitude);
         Log.d("savedInstance", "zoom=" + zoom);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), zoom));
     }
@@ -691,19 +618,7 @@ public class SelectTransit extends AppCompatActivity implements
 //        System.out.println("restore...");
 //        clearMap();
         mMap.setMyLocationEnabled(true);
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-        if (sp.getInt(BUSLIST_SIZE, -1) == getResources().getStringArray(R.array.buses).length) {
-//            buses.clear();
-            clearAndAddToMap();
-//            final Handler handler = new Handler();
-//            handler.postDelayed(new Runnable() {
-//                @Override
-//                public void run() {
-//                    restorePolylines();
-//                }
-//            }, 100);
-
-        }
+        clearAndAddToMap();
     }
 
     /**
@@ -714,11 +629,11 @@ public class SelectTransit extends AppCompatActivity implements
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         if (sp.getInt(BUSLIST_SIZE, -1) == getResources().getStringArray(R.array.buses).length) {
             Set<String> selected = sp.getStringSet(STATE_SELECTED_POSITIONS, null);
+            selected.add("54");
             if (selected != null) {
                 for (String select : selected) {
                     int position = Integer.parseInt(select);
                     selectPolyline(position);
-                    mNavigationDrawerFragment.setTrue(position);
                 }
             }
         } else {
@@ -813,9 +728,6 @@ public class SelectTransit extends AppCompatActivity implements
             transitStop = new TransitStop();
             removeBuses();
             clearBuses();
-            mNavigationDrawerFragment.clearSelection();
-
-//            mNavigationDrawerFragment.clearSelection();
         }
     }
 
@@ -823,14 +735,10 @@ public class SelectTransit extends AppCompatActivity implements
      * The list of buses that are selected
      */
     protected void clearBuses() {
-        if(buses != null)
+        if (buses != null)
             buses.clear();
     }
 
-    public void onBackPressed() {
-        if (!mNavigationDrawerFragment.closeDrawer())
-            super.onBackPressed();
-    }
 
     /**
      * Part of the GoogleApiClient connection. If it is connected
