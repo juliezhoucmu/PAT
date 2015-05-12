@@ -355,7 +355,7 @@ public class RequestLine extends AsyncTask<Void, Void, RequestLineContainer> {
                 }
             }
         } else {
-            Toast.makeText(context, selectedRoute + " " + context.getString(R.string.route_not_found), Toast.LENGTH_LONG).show();
+//            Toast.makeText(context, selectedRoute + " " + context.getString(R.string.route_not_found), Toast.LENGTH_LONG).show();
         }
     }
 }

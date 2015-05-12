@@ -27,6 +27,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashSet;
@@ -160,16 +161,18 @@ public class SelectTransit extends AppCompatActivity implements
 
     private TransitStop transitStop;
 
+    private int lineNum;
+    private List<String> lineName;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_select_transit);
+        setLineName();
+        setLineNumber("71A");
         checkSDCardData();
         mTitle = getTitle();
-
-
         setGoogleApiClient();
         createBusList();
         //sets up the map
@@ -181,7 +184,7 @@ public class SelectTransit extends AppCompatActivity implements
 //        } else {
 //
 //        }
-        selectFromList(29);
+        selectFromList(lineNum);
     }
 
 //    /**
@@ -196,6 +199,23 @@ public class SelectTransit extends AppCompatActivity implements
 //        return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
 //    }
 
+
+    private void setLineName() {
+        lineName = Arrays.asList("1", "12", "13", "14", "15", "16", "17", "18", "19L", "2", "20", "21", "22", "24", "26", "27", "28X", "29", "31", "36", "38", "39", "41", "48", "51", "51L", "52L", "53", "53L", "54", "55", "56", "57", "58", "59", "6", "60", "61A", "61B", "61C", "61D", "64", "65", "67", "68", "69", "71", "71A", "71B", "71C", "71D", "74", "75", "77", "78", "79", "8", "81", "82", "83", "86", "87", "88", "89", "91", "93", "G2", "G3", "G31", "O1", "O12", "O5", "P1", "P10", "P12", "P13", "P16", "P17", "P2", "P3", "P67", "P68", "P69", "P7", "P71", "P76", "P78", "Y1", "Y45", "Y46", "Y47", "Y49");
+    }
+
+    private int getLineNum(String name) {
+        for (int i = 0; i < lineName.size();i++) {
+            if (lineName.get(i).equals(name)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private void setLineNumber(String name) {
+        lineNum = getLineNum(name);
+    }
     /**
      * Checks if the stored polylines directory is present and clears if we hit a friday or if the
      * saved day of the week is higher than the current day of the week.
@@ -432,7 +452,7 @@ public class SelectTransit extends AppCompatActivity implements
         } else {
             setUpMapIfNeeded();
         }
-        selectPolyline(29);
+        selectPolyline(lineNum);
 
     }
 
@@ -491,8 +511,8 @@ public class SelectTransit extends AppCompatActivity implements
 
 
     public void selectFromList(int number) {
-        buses.add("54");
-        selectPolyline(29);
+        buses.add(lineName.get(number));
+        selectPolyline(number);
     }
 
     public void deselectFromList(int number) {
@@ -629,7 +649,7 @@ public class SelectTransit extends AppCompatActivity implements
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         if (sp.getInt(BUSLIST_SIZE, -1) == getResources().getStringArray(R.array.buses).length) {
             Set<String> selected = sp.getStringSet(STATE_SELECTED_POSITIONS, null);
-            selected.add("54");
+            selected.add(lineName.get(lineNum));
             if (selected != null) {
                 for (String select : selected) {
                     int position = Integer.parseInt(select);
