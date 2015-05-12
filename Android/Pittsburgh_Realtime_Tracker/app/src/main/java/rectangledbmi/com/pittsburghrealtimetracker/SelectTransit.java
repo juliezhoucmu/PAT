@@ -10,9 +10,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.AppCompatAutoCompleteTextView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -553,10 +551,15 @@ public class SelectTransit extends AppCompatActivity implements
         List<Polyline> polylines = routeLines.get(route);
 
         if (polylines == null || polylines.isEmpty()) {
+            Log.i("******", "can't get this polyline");
             new RequestLine(mMap, routeLines, route, busStops, color, zoom, Float.parseFloat(getString(R.string.zoom_level)), transitStop, this).execute();
         } else if(!polylines.get(0).isVisible()) {
+            Log.i("******", "Polyline is not visible");
             setVisiblePolylines(polylines, true);
             transitStop.updateAddRoutes(route, zoom, Float.parseFloat(getString(R.string.zoom_level)));
+        }
+        else {
+            Log.i("******", "Polyline is already visible");
         }
     }
 
