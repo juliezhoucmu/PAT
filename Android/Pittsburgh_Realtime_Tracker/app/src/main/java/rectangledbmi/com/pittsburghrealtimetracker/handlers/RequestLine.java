@@ -226,7 +226,7 @@ public class RequestLine extends AsyncTask<Void, Void, RequestLineContainer> {
                 }
 
             } catch (NullPointerException e) {
-                Toast.makeText(context, "The Port Authority servers are down. Sorry!", Toast.LENGTH_LONG);
+//                Toast.makeText(context, "The Port Authority servers are down. Sorry!", Toast.LENGTH_LONG);
             }
             eventType = parser.next();
         }
