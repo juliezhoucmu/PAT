@@ -637,7 +637,7 @@ public class SelectTransit extends AppCompatActivity implements
                 }
             }
         } else {
-            Toast.makeText(this, "New buses were added. Please re-select your buses", Toast.LENGTH_LONG).show();
+//            Toast.makeText(this, "New buses were added. Please re-select your buses", Toast.LENGTH_LONG).show();
         }
     }
 
