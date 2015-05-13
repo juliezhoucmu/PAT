@@ -10,7 +10,7 @@ The idea is to create a custom ArrayAdapter (ColorArrayAdapter)
 
 
 -->
-<rectangledbmi.com.pittsburghrealtimetracker.handlers.extend.CheckableRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<rectangledbmi.com.pat.handlers.extend.CheckableRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/item"
@@ -52,4 +52,4 @@ The idea is to create a custom ArrayAdapter (ColorArrayAdapter)
         android:textColor="@android:color/black"
         android:focusable="false" />
 
-</rectangledbmi.com.pittsburghrealtimetracker.handlers.extend.CheckableRelativeLayout>
+</rectangledbmi.com.pat.handlers.extend.CheckableRelativeLayout>
