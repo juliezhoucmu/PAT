@@ -2,6 +2,12 @@
 <resources>
 
     <!-- CUSTOM -->
+    <color name="blue1">#F8F8FF</color>
+    <color name="blue2">#F8F8FF</color>
+    <color name="grey">#DFDFDF</color>
+
+
+
     <color name="blue_500_trans">#555677fc</color>
 
     <!-- RED -->

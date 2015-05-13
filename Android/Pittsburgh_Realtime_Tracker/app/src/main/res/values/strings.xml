@@ -2,6 +2,7 @@
 <resources>
 
     <string name="app_name">EzyBus</string>
+    <string name="title_activity_bus_stops">Map</string>
 
     <string-array name="buses">
         <item color="#3300cc">1</item>

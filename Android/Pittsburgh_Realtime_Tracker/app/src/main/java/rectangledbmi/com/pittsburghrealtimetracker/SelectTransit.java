@@ -457,6 +457,8 @@ public class SelectTransit extends AppCompatActivity implements
 //        }
         if (mMap != null) {
             setUpMap();
+            addLine("61D");
+            addLine("61B");
         } else {
             setUpMapIfNeeded();
         }
