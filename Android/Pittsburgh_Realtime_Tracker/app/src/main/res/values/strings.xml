@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">PAT Realtime Tracker</string>
+    <string name="app_name">EzyBus</string>
 
     <string-array name="buses">
         <item color="#3300cc">1</item>
@@ -42,9 +42,9 @@
         <item color="#ffcc33">6</item>
         <item color="#999900">60</item>
         <item color="#e0ffff">61A</item>
-        <item color="#afeeee">61B</item>
+        <item color="#3300ff">61B</item>
         <item color="#00ffff">61C</item>
-        <item color="#7fffd4">61D</item>
+        <item color="#ff66cc">61D</item>
         <item color="#cc6633">64</item>
         <item color="#cc3399">65</item>
         <item color="#00cc66">67</item>
@@ -136,9 +136,9 @@
         <item name="6">#ffcc33</item>
         <item name="60">#999900</item>
         <item name="61A">#e0ffff</item>
-        <item name="61B">#afeeee</item>
+        <item name="61B">#3300ff</item>
         <item name="61C">#00ffff</item>
-        <item name="61D">#7fffd4</item>
+        <item name="61D">#ff66cc</item>
         <item name="64">#cc6633</item>
         <item name="65">#cc3399</item>
         <item name="67">#00cc66</item>
