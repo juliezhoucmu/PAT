@@ -1,7 +1,7 @@
 package rectangledbmi.com.pat;
 
-import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.hardware.Sensor;
@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -61,14 +62,9 @@ public class SelectTransit extends AppCompatActivity implements
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
 
-    private SensorManager sensorManager;
-    private Vibrator vibrator;
     private static final String TAG = "TestSensorActivity";
     private static final int SENSOR_SHAKE = 10;
-
-
     private static final String LINES_LAST_UPDATED = "lines_last_updated";
-
     private static final String BUSLIST_SIZE = "buslist_size";
     /**
      * saved indexes from selection
@@ -78,28 +74,24 @@ public class SelectTransit extends AppCompatActivity implements
      * Saved instance of the buses that are selected
      */
     private final static String BUS_SELECT_STATE = "busesSelected";
-
     /**
      * Saved instance key for the latitude
      */
     private final static String LAST_LATITUDE = "lastLatitude";
-
     /**
      * Saved instance key for the longitude
      */
     private final static String LAST_LONGITUDE = "lastLongitude";
-
     /**
      * Saved instance key for the zoom of the map
      */
     private final static String LAST_ZOOM = "lastZoom";
-
     /**
      * The latitude and longitude of Pittsburgh... used if the app doesn't have a saved state of the camera
      */
     private final static LatLng PITTSBURGH = new LatLng(40.441, -79.981);
-
-
+    private SensorManager sensorManager;
+    private Vibrator vibrator;
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
@@ -172,13 +164,73 @@ public class SelectTransit extends AppCompatActivity implements
     private ConcurrentMap<String, List<Polyline>> routeLines;
 //    private ConcurrentMap<String, Polyline> routeLines;
 
+    private boolean popup = false;
+
     private ConcurrentMap<Integer, Marker> busStops;
 
     private TransitStop transitStop;
 
     private List<Integer> selectedLine = new ArrayList<Integer>();
     private List<String> lineName = Arrays.asList("1", "12", "13", "14", "15", "16", "17", "18", "19L", "2", "20", "21", "22", "24", "26", "27", "28X", "29", "31", "36", "38", "39", "41", "48", "51", "51L", "52L", "53", "53L", "54", "55", "56", "57", "58", "59", "6", "60", "61A", "61B", "61C", "61D", "64", "65", "67", "68", "69", "71", "71A", "71B", "71C", "71D", "74", "75", "77", "78", "79", "8", "81", "82", "83", "86", "87", "88", "89", "91", "93", "G2", "G3", "G31", "O1", "O12", "O5", "P1", "P10", "P12", "P13", "P16", "P17", "P2", "P3", "P67", "P68", "P69", "P7", "P71", "P76", "P78", "Y1", "Y45", "Y46", "Y47", "Y49");
+    private SensorEventListener sensorEventListener = new SensorEventListener() {
+        @Override
+        public void onSensorChanged(SensorEvent event) {
+// 传感器信息改变时执行该方法
+            float[] values = event.values;
+            float x = values[0]; // x轴方向的重力加速度，向右为正
+            float y = values[1]; // y轴方向的重力加速度，向前为正
+            float z = values[2]; // z轴方向的重力加速度，向上为正
+            Log.i(TAG, "x轴方向的重力加速度" + x + "；y轴方向的重力加速度" + y + "；z轴方向的重力加速度" + z);
+// 一般在这三个方向的重力加速度达到40就达到了摇晃手机的状态。
+            int medumValue = 19;// 三星 i9250怎么晃都不会超过20，没办法，只设置19了
+            if (Math.abs(x) > medumValue || Math.abs(y) > medumValue || Math.abs(z) > medumValue) {
+                vibrator.vibrate(200);
+                Message msg = new Message();
+                msg.what = SENSOR_SHAKE;
+                handler.sendMessage(msg);
+            }
+        }
 
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        }
+    };
+
+//    /**
+//     * Checks if the network is available
+//     * TODO: incorporate this with a dialog to enable internet
+//     * @return whether or not the network is available...
+//     */
+//    private boolean isNetworkAvailable() {
+//        ConnectivityManager connectivityManager
+//                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+//        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+//        return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
+//    }
+    /**
+     * Shake Detection
+     */
+
+
+    private boolean getOnBus = false;
+    Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case SENSOR_SHAKE: {
+                    if (popup == false) {
+                        popup = true;
+                        dialog();
+                    }
+
+                    break;
+
+                }
+
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -204,19 +256,6 @@ public class SelectTransit extends AppCompatActivity implements
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
     }
-
-//    /**
-//     * Checks if the network is available
-//     * TODO: incorporate this with a dialog to enable internet
-//     * @return whether or not the network is available...
-//     */
-//    private boolean isNetworkAvailable() {
-//        ConnectivityManager connectivityManager
-//                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-//        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-//        return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
-//    }
-
 
     private void setLineName() {
         lineName = Arrays.asList("1", "12", "13", "14", "15", "16", "17", "18", "19L", "2", "20", "21", "22", "24", "26", "27", "28X", "29", "31", "36", "38", "39", "41", "48", "51", "51L", "52L", "53", "53L", "54", "55", "56", "57", "58", "59", "6", "60", "61A", "61B", "61C", "61D", "64", "65", "67", "68", "69", "71", "71A", "71B", "71C", "71D", "74", "75", "77", "78", "79", "8", "81", "82", "83", "86", "87", "88", "89", "91", "93", "G2", "G3", "G31", "O1", "O12", "O5", "P1", "P10", "P12", "P13", "P16", "P17", "P2", "P3", "P67", "P68", "P69", "P7", "P71", "P76", "P78", "Y1", "Y45", "Y46", "Y47", "Y49");
@@ -376,7 +415,6 @@ public class SelectTransit extends AppCompatActivity implements
 
     }
 
-
     /**
      * initializes the bus list
      * <p/>
@@ -391,7 +429,6 @@ public class SelectTransit extends AppCompatActivity implements
         routeLines = new ConcurrentHashMap<>(getResources().getInteger(R.integer.max_checked));
         busMarkers = new ConcurrentHashMap<>(100);
     }
-
 
     /**
      * Sets up map if it is needed
@@ -503,6 +540,14 @@ public class SelectTransit extends AppCompatActivity implements
         }
     }
 
+//    @Override
+//    protected void onDestroy() {
+//        super.onDestroy();
+//        clearMap();
+//
+//
+//    }
+
     protected void onPause() {
         super.onPause();
         Log.d("main_destroy", "SelectTransit onPause");
@@ -536,15 +581,6 @@ public class SelectTransit extends AppCompatActivity implements
         sp.edit().putStringSet(BUS_SELECT_STATE, buses).apply();
         sp.edit().putInt(BUSLIST_SIZE, getResources().getStringArray(R.array.buses).length).apply();
     }
-
-//    @Override
-//    protected void onDestroy() {
-//        super.onDestroy();
-//        clearMap();
-//
-//
-//    }
-
 
     public void selectFromList(int number) {
         for (int i : selectedLine) {
@@ -638,7 +674,6 @@ public class SelectTransit extends AppCompatActivity implements
         }
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
-
 
     /**
      * Polls self on the map and then centers the map on Pittsburgh or you if you're in Pittsburgh..
@@ -734,7 +769,6 @@ public class SelectTransit extends AppCompatActivity implements
             clearMap();
     }
 
-
     private synchronized void removeBuses() {
         if (busMarkers != null) {
             for (Marker busMarker : busMarkers.values()) {
@@ -788,7 +822,6 @@ public class SelectTransit extends AppCompatActivity implements
         if (buses != null)
             buses.clear();
     }
-
 
     /**
      * Part of the GoogleApiClient connection. If it is connected
@@ -851,55 +884,51 @@ public class SelectTransit extends AppCompatActivity implements
         this.busMarkers = busMarkers;
     }
 
-    public void setBusTaskRunning(boolean isBusTaskRunning) {
-        this.isBusTaskRunning = isBusTaskRunning;
-    }
-
     public boolean isBusTaskRunning() {
         return isBusTaskRunning;
     }
 
-    private SensorEventListener sensorEventListener = new SensorEventListener() {
-        @Override
-        public void onSensorChanged(SensorEvent event) {
-// 传感器信息改变时执行该方法
-            float[] values = event.values;
-            float x = values[0]; // x轴方向的重力加速度，向右为正
-            float y = values[1]; // y轴方向的重力加速度，向前为正
-            float z = values[2]; // z轴方向的重力加速度，向上为正
-            Log.i(TAG, "x轴方向的重力加速度" + x + "；y轴方向的重力加速度" + y + "；z轴方向的重力加速度" + z);
-// 一般在这三个方向的重力加速度达到40就达到了摇晃手机的状态。
-            int medumValue = 19;// 三星 i9250怎么晃都不会超过20，没办法，只设置19了
-            if (Math.abs(x) > medumValue || Math.abs(y) > medumValue || Math.abs(z) > medumValue) {
-                vibrator.vibrate(200);
-                Message msg = new Message();
-                msg.what = SENSOR_SHAKE;
-                handler.sendMessage(msg);
-            }
-        }
+    public void setBusTaskRunning(boolean isBusTaskRunning) {
+        this.isBusTaskRunning = isBusTaskRunning;
+    }
 
-        @Override
-        public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        }
-    };
-    /**
-     * 动作执行
-     */
-    Handler handler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            switch (msg.what) {
-                case SENSOR_SHAKE: {
-                    Toast.makeText(SelectTransit.this, "检测到摇晃，执行操作！", Toast.LENGTH_SHORT).show();
-                    Log.i(TAG, "检测到摇晃，执行操作！");
-                    break;
+    protected void dialog() {
+
+        if (!getOnBus) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(SelectTransit.this);
+            builder.setMessage("Get on the bus？");
+            builder.setTitle("");
+            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+
+                    popup = false;
+                    AlertDialog.Builder busBuilder = new AlertDialog.Builder(SelectTransit.this).setMultiChoiceItems(new String[]{"61B", "61D"}, null, null);
+                    busBuilder.setSingleChoiceItems(new String[]{"61B","61D"},2,null);
+
+                    busBuilder.setPositiveButton("OK",new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            getOnBus = true;
+                            dialog.dismiss();
+
+                        }
+                    });
+                    busBuilder.setNegativeButton("Cancel", null);
+                    busBuilder.show();
+                }
+            });
+            builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                    popup = false;
                 }
 
-            }
+            });
+            builder.create().show();
+        } else {
+            // Text to Speech
         }
-    };
 
-
-
+    }
 }
