@@ -234,11 +234,8 @@ public class SelectTransit extends AppCompatActivity implements
                         popup = true;
                         dialog();
                     }
-
                     break;
-
                 }
-
             }
         }
     };
@@ -979,6 +976,7 @@ public class SelectTransit extends AppCompatActivity implements
 
             });
             builder.create().show();
+
         } else {
 //            Toast.makeText(this, "Should speak", Toast.LENGTH_SHORT).show();
             speakWords("You have 3 stops to go, about 7 miniutes");
