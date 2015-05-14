@@ -1,18 +1,66 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
+    android:layout_width="fill_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity"
+    android:paddingTop="0dp"
+    android:paddingRight="0dp"
+    android:paddingLeft="0dp"
+    android:paddingBottom="0dp"
     android:background="#FFFFFF"
-    android:orientation="vertical"
     >
 
-    <ListView
-        android:id="@+id/list_view"
-        android:layout_width="match_parent"
+
+    <ImageView
+        android:id="@+id/top"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        >
-    </ListView>
+        android:adjustViewBounds="true"
+        android:scaleType="fitStart"
+        android:maxHeight="2000dp"
+        android:maxWidth="2000dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:src="@drawable/up"
+
+        android:layout_alignParentEnd="true" />
+
+    <ImageView
+        android:id="@+id/bus_b"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/top"
+        android:adjustViewBounds="true"
+        android:scaleType="fitStart"
+        android:maxHeight="2000dp"
+        android:maxWidth="2000dp"
+
+        android:paddingTop="0dp"
+        android:paddingRight="0dp"
+        android:paddingLeft="0dp"
+        android:paddingBottom="0dp"
+        android:layout_alignParentLeft="true"
+        android:src="@drawable/b"/>
+
+    <ImageView
+        android:id="@+id/bus_d"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/bus_b"
+        android:paddingTop="0dp"
+        android:paddingRight="0dp"
+        android:paddingLeft="0dp"
+        android:paddingBottom="0dp"
+        android:adjustViewBounds="true"
+        android:scaleType="fitStart"
+        android:maxHeight="2000dp"
+        android:maxWidth="2000dp"
+
+        android:layout_alignParentLeft="true"
+        android:src="@drawable/d"/>
+
+
+
 
 
     <Button
@@ -20,8 +68,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Find them on Map"
-        android:textColor="#000000"/>
+        android:background="#488EF1"
+        android:textColor="#FFFFFF"
+        android:layout_alignParentBottom="true"/>
 
 
 
-</LinearLayout>
+</RelativeLayout>

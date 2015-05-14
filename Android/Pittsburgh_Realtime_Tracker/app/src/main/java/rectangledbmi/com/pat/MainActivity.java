@@ -32,17 +32,7 @@ public class MainActivity extends Activity {
                 startActivity(it);
             }
         });
-        listView = (ListView) findViewById(R.id.list_view);
-        adapter = new MovieAdapter(getApplicationContext(), R.layout.row_layout);
-        listView.setAdapter(adapter);
-        listView.setDividerHeight(0);
 
-        MovieDataProvider dataProvider1 = new MovieDataProvider(R.drawable.up);
-        MovieDataProvider dataProvider2 = new MovieDataProvider(R.drawable.d);
-        MovieDataProvider dataProvider3 = new MovieDataProvider(R.drawable.b);
-        adapter.add(dataProvider1);
-        adapter.add(dataProvider2);
-        adapter.add(dataProvider3);
 
     }
 

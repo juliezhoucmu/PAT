@@ -17,6 +17,7 @@
         android:singleLine="true"
         android:textSize="22dip"
         android:textStyle="italic"
+        android:textColor="#000000"
         android:imeOptions="actionDone" />
 
     <ImageView
