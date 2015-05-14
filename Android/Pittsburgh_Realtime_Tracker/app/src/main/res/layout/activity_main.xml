@@ -1,0 +1,27 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
+    android:background="#FFFFFF"
+    android:orientation="vertical"
+    >
+
+    <ListView
+        android:id="@+id/list_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+    </ListView>
+
+
+    <Button
+        android:id="@+id/show_map"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Find them on Map"
+        android:textColor="#000000"/>
+
+
+
+</LinearLayout>

@@ -46,7 +46,7 @@ public class Start extends FragmentActivity implements LocationListener {
         acTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent it = new Intent(Start.this,SelectTransit.class);
+                Intent it = new Intent(Start.this,MainActivity.class);
                 startActivity(it);
             }
         });
