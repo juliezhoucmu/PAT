@@ -2,6 +2,7 @@ package rectangledbmi.com.pat;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.hardware.Sensor;
@@ -15,6 +16,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
+import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -41,6 +43,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -54,12 +57,14 @@ import rectangledbmi.com.pat.handlers.extend.ETAWindowAdapter;
 import rectangledbmi.com.pat.world.TransitStop;
 import rectangledbmi.com.pittsburghrealtimetracker.R;
 
+
 /**
  * This is the main activity of the Realtime Tracker...
  */
 public class SelectTransit extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
+        TextToSpeech.OnInitListener,
         LocationListener {
 
     private static final String TAG = "TestSensorActivity";
@@ -166,6 +171,12 @@ public class SelectTransit extends AppCompatActivity implements
 
     private boolean popup = false;
 
+
+    // for TTS
+    private int MY_DATA_CHECK_CODE = 0;
+    private TextToSpeech myTTS;
+
+
     private ConcurrentMap<Integer, Marker> busStops;
 
     private TransitStop transitStop;
@@ -252,9 +263,20 @@ public class SelectTransit extends AppCompatActivity implements
 //        } else {
 //
 //        }
+
+        // setup for Shake detection
         selectFromList(0); // paramenter means nothing here
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+
+
+        // setup for TTS
+
+
+        Intent checkTTSIntent = new Intent();
+        checkTTSIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
+        startActivityForResult(checkTTSIntent, MY_DATA_CHECK_CODE);
+
     }
 
     private void setLineName() {
@@ -540,13 +562,11 @@ public class SelectTransit extends AppCompatActivity implements
         }
     }
 
-//    @Override
-//    protected void onDestroy() {
-//        super.onDestroy();
-//        clearMap();
-//
-//
-//    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+//        myTTS.shutdown();
+    }
 
     protected void onPause() {
         super.onPause();
@@ -892,9 +912,42 @@ public class SelectTransit extends AppCompatActivity implements
         this.isBusTaskRunning = isBusTaskRunning;
     }
 
+    // for TTS
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == MY_DATA_CHECK_CODE) {
+            if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
+                myTTS = new TextToSpeech(SelectTransit.this, SelectTransit.this);
+//                Intent installTTSIntent = new Intent();
+//                installTTSIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+//                startActivity(installTTSIntent);
+            }
+        }
+    }
+
+    public void onInit(int initStatus) {
+        if (initStatus == TextToSpeech.SUCCESS) {
+            if (myTTS.isLanguageAvailable(Locale.UK) == TextToSpeech.LANG_AVAILABLE) {
+                myTTS.setLanguage(Locale.UK);
+            }
+        } else if (initStatus == TextToSpeech.ERROR) {
+            Toast.makeText(this, "Sorry! Text To Speech failed...", Toast.LENGTH_LONG).show();
+        }
+    }
+
+
+    private void speakWords(String speech) {
+//implement TTS here
+        Toast.makeText(this, "You have 3 stops to go, about 7 minutes", Toast.LENGTH_SHORT).show();
+        myTTS.speak(speech, TextToSpeech.QUEUE_FLUSH, null);
+
+
+    }
+
+
     protected void dialog() {
 
-        if (!getOnBus) {
+        if (getOnBus == false) {
             AlertDialog.Builder builder = new AlertDialog.Builder(SelectTransit.this);
             builder.setMessage("Get on the bus？");
             builder.setTitle("");
@@ -904,9 +957,9 @@ public class SelectTransit extends AppCompatActivity implements
 
                     popup = false;
                     AlertDialog.Builder busBuilder = new AlertDialog.Builder(SelectTransit.this).setMultiChoiceItems(new String[]{"61B", "61D"}, null, null);
-                    busBuilder.setSingleChoiceItems(new String[]{"61B","61D"},2,null);
+                    busBuilder.setSingleChoiceItems(new String[]{"61B", "61D"}, 2, null);
 
-                    busBuilder.setPositiveButton("OK",new DialogInterface.OnClickListener() {
+                    busBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             getOnBus = true;
                             dialog.dismiss();
@@ -927,8 +980,12 @@ public class SelectTransit extends AppCompatActivity implements
             });
             builder.create().show();
         } else {
-            // Text to Speech
+//            Toast.makeText(this, "Should speak", Toast.LENGTH_SHORT).show();
+            speakWords("You have 3 stops to go, about 7 miniutes");
+
         }
 
     }
+
+
 }
