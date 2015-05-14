@@ -1,12 +1,19 @@
 package rectangledbmi.com.pat;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.net.http.HttpResponseCache;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
+import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -39,12 +46,12 @@ import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import rectangledbmi.com.pat.handlers.extend.ETAWindowAdapter;
-import rectangledbmi.com.pat.world.TransitStop;
-import rectangledbmi.com.pittsburghrealtimetracker.R;
 import rectangledbmi.com.pat.handlers.RequestLine;
 import rectangledbmi.com.pat.handlers.RequestPredictions;
 import rectangledbmi.com.pat.handlers.RequestTask;
+import rectangledbmi.com.pat.handlers.extend.ETAWindowAdapter;
+import rectangledbmi.com.pat.world.TransitStop;
+import rectangledbmi.com.pittsburghrealtimetracker.R;
 
 /**
  * This is the main activity of the Realtime Tracker...
@@ -53,6 +60,12 @@ public class SelectTransit extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
+
+    private SensorManager sensorManager;
+    private Vibrator vibrator;
+    private static final String TAG = "TestSensorActivity";
+    private static final int SENSOR_SHAKE = 10;
+
 
     private static final String LINES_LAST_UPDATED = "lines_last_updated";
 
@@ -188,6 +201,8 @@ public class SelectTransit extends AppCompatActivity implements
 //
 //        }
         selectFromList(0); // paramenter means nothing here
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
     }
 
 //    /**
@@ -208,7 +223,7 @@ public class SelectTransit extends AppCompatActivity implements
     }
 
     private int getLineNum(String name) {
-        for (int i = 0; i < lineName.size();i++) {
+        for (int i = 0; i < lineName.size(); i++) {
             if (lineName.get(i).equals(name)) {
                 return i;
             }
@@ -225,6 +240,7 @@ public class SelectTransit extends AppCompatActivity implements
         }
         selectedLine.add(getLineNum(name));
     }
+
     /**
      * Checks if the stored polylines directory is present and clears if we hit a friday or if the
      * saved day of the week is higher than the current day of the week.
@@ -466,6 +482,11 @@ public class SelectTransit extends AppCompatActivity implements
         for (int i : selectedLine) {
             selectPolyline(i);
         }
+
+        if (sensorManager != null) {// 注册监听器
+            sensorManager.registerListener(sensorEventListener, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
+// 第一个参数是Listener，第二个参数是所得传感器类型，第三个参数值获取传感器信息的频率
+        }
     }
 
     /**
@@ -488,6 +509,9 @@ public class SelectTransit extends AppCompatActivity implements
         savePreferences();
         stopTimer();
 
+        if (sensorManager != null) {// 取消监听器
+            sensorManager.unregisterListener(sensorEventListener);
+        }
     }
 
     @Override
@@ -539,15 +563,14 @@ public class SelectTransit extends AppCompatActivity implements
 
     private synchronized void selectPolyline(int number) {
         String route = getResources().getStringArray(R.array.buses)[number];
-        Log.i("******",route);
+        Log.i("******", route);
         int color = Color.parseColor(getResources().getStringArray(R.array.buscolors)[number]);
         List<Polyline> polylines = routeLines.get(route);
 
         if (polylines == null || polylines.isEmpty()) {
             Log.i("******", "can't get this polyline");
             new RequestLine(mMap, routeLines, route, busStops, color, zoom, Float.parseFloat(getString(R.string.zoom_level)), transitStop, this).execute();
-        }
-        else if (!polylines.get(0).isVisible()) {
+        } else if (!polylines.get(0).isVisible()) {
             Log.i("******", "Polyline is not visible");
             setVisiblePolylines(polylines, true);
             transitStop.updateAddRoutes(route, zoom, Float.parseFloat(getString(R.string.zoom_level)));
@@ -835,4 +858,48 @@ public class SelectTransit extends AppCompatActivity implements
     public boolean isBusTaskRunning() {
         return isBusTaskRunning;
     }
+
+    private SensorEventListener sensorEventListener = new SensorEventListener() {
+        @Override
+        public void onSensorChanged(SensorEvent event) {
+// 传感器信息改变时执行该方法
+            float[] values = event.values;
+            float x = values[0]; // x轴方向的重力加速度，向右为正
+            float y = values[1]; // y轴方向的重力加速度，向前为正
+            float z = values[2]; // z轴方向的重力加速度，向上为正
+            Log.i(TAG, "x轴方向的重力加速度" + x + "；y轴方向的重力加速度" + y + "；z轴方向的重力加速度" + z);
+// 一般在这三个方向的重力加速度达到40就达到了摇晃手机的状态。
+            int medumValue = 19;// 三星 i9250怎么晃都不会超过20，没办法，只设置19了
+            if (Math.abs(x) > medumValue || Math.abs(y) > medumValue || Math.abs(z) > medumValue) {
+                vibrator.vibrate(200);
+                Message msg = new Message();
+                msg.what = SENSOR_SHAKE;
+                handler.sendMessage(msg);
+            }
+        }
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        }
+    };
+    /**
+     * 动作执行
+     */
+    Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case SENSOR_SHAKE: {
+                    Toast.makeText(SelectTransit.this, "检测到摇晃，执行操作！", Toast.LENGTH_SHORT).show();
+                    Log.i(TAG, "检测到摇晃，执行操作！");
+                    break;
+                }
+
+            }
+        }
+    };
+
+
+
 }
